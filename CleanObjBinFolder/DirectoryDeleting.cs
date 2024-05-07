@@ -41,9 +41,10 @@ namespace CleanObjBinFolder
                     else
                         foreach (var pathParent in othersFolders)
                             FindDirectoryToDelete(pathParent, excludeFolders);
-                }
+                    }
 
-            }
+                    RecursiveDirectory(pathParent);
+                }
             catch (Exception ex)
             {
                 Log.Error($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
@@ -61,7 +62,7 @@ namespace CleanObjBinFolder
                     Directory.Delete(path, true);
                     return true;
                 }
-            }
+                }
             catch (Exception ex)
             {
                 Log.Error($"Error at {nameof(DeleteDirectoryFromPath)} with message {ex.Message}");
@@ -82,6 +83,35 @@ namespace CleanObjBinFolder
                 Console.WriteLine($"Path: {path} Found and Deleted");
                 Console.WriteLine($"===========================================");
             }
+        }
+
+        public static long GetFolderSize(string path, bool allDirectories, string extension)
+        {
+            var option = allDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            return new DirectoryInfo(path).EnumerateFiles("*" + extension, option).Sum(file => file.Length);
+        }
+
+        public long GetFolderSizeNoExtension(string path, bool allDirectories)
+        {
+            var option = allDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            return new DirectoryInfo(path).EnumerateFiles("*", option).Sum(file => file.Length);
+        }
+
+        public static string FormatFileSize(long bytes)
+        {
+            var bUnit = 1024;
+            if (bytes < bUnit)
+                return $"{bytes} B";
+
+            int exponential = (int)(Math.Log(bytes) / Math.Log(bUnit));
+            return $"{bytes / Math.Pow(bUnit, exponential):F2} {("KMGTPE")[exponential - 1]}B";
+        }
+
+        public void DeletedFolderMessage(int count, string sizeDeleted)
+        {
+            Console.WriteLine($"Deleted {count} folders");
+            Console.WriteLine($"Deleted {sizeDeleted} folders");
+            Console.WriteLine("Finished. Press any key to close this window.");
         }
     }
 }
