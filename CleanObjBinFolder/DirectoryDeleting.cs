@@ -21,18 +21,18 @@ namespace CleanObjBinFolder
                 {
                     if (excludeFolders.Any())
                         findParents = Directory.GetDirectories(parentPath)
-                            .Where(d => !excludeFolders.Any(d.Contains)).ToList();  // <= Will exclude the folders and show only the desire one to delete.
+                            .Where(d => !excludeFolders.Any(d.Equals)).ToList();  // <= Will exclude the folders and show only the desire one to delete.
                     else
                         findParents = Directory.GetDirectories(parentPath).ToList();    // <= Will find all and delete .vs, bin, obj
 
-                    var containsCS = findParents.Where(_ => _.Contains(DirectoryConstants.VSFolder));
+                    var containsCS = findParents.Where(_ => _.Equals(DirectoryConstants.VSFolder));
 
                     if (containsCS.Any())
                         PathsToDelete.Add(containsCS.First());
 
-                    var othersFolders = findParents.Where(_ => !_.Contains(DirectoryConstants.VSFolder));
+                    var othersFolders = findParents.Where(_ => !_.Equals(DirectoryConstants.VSFolder));
 
-                    var containsObjBin = findParents.Where(_ => _.Contains(DirectoryConstants.BinFolder) || _.Contains(DirectoryConstants.ObjFolder));
+                    var containsObjBin = findParents.Where(_ => _.Equals(DirectoryConstants.BinFolder) || _.Equals(DirectoryConstants.ObjFolder));
 
                     if (containsObjBin.Any())
                         foreach (var path in containsObjBin)
@@ -45,7 +45,6 @@ namespace CleanObjBinFolder
             catch (Exception ex)
             {
                 Log.Error($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
-                throw;
             }
         }
 
@@ -59,11 +58,10 @@ namespace CleanObjBinFolder
                     Directory.Delete(path, true);
                     return true;
                 }
-                }
+            }
             catch (Exception ex)
             {
                 Log.Error($"Error at {nameof(DeleteDirectoryFromPath)} with message {ex.Message}");
-                throw;
             }
 
             return false;
@@ -71,44 +69,21 @@ namespace CleanObjBinFolder
 
         public static void DeleteDirectory(string path)
         {
-            //var directoryInfo = new DirectoryInfo(path);
-            if (Directory.Exists(path))
+            try
             {
-                Directory.Delete(path, true);
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
 
-                Console.WriteLine($"===========================================");
-                Console.WriteLine($"Path: {path} Found and Deleted");
-                Console.WriteLine($"===========================================");
+                    Console.WriteLine($"===========================================");
+                    Console.WriteLine($"Path: {path} Found and Deleted");
+                    Console.WriteLine($"===========================================");
+                }
             }
-        }
-
-        public static long GetFolderSize(string path, bool allDirectories, string extension)
-        {
-            var option = allDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            return new DirectoryInfo(path).EnumerateFiles("*" + extension, option).Sum(file => file.Length);
-        }
-
-        public long GetFolderSizeNoExtension(string path, bool allDirectories)
-        {
-            var option = allDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            return new DirectoryInfo(path).EnumerateFiles("*", option).Sum(file => file.Length);
-        }
-
-        public static string FormatFileSize(long bytes)
-        {
-            var bUnit = 1024;
-            if (bytes < bUnit)
-                return $"{bytes} B";
-
-            int exponential = (int)(Math.Log(bytes) / Math.Log(bUnit));
-            return $"{bytes / Math.Pow(bUnit, exponential):F2} {("KMGTPE")[exponential - 1]}B";
-        }
-
-        public void DeletedFolderMessage(int count, string sizeDeleted)
-        {
-            Console.WriteLine($"Deleted {count} folders");
-            Console.WriteLine($"Deleted {sizeDeleted} folders");
-            Console.WriteLine("Finished. Press any key to close this window.");
+            catch (Exception ex)
+            {
+                Log.Error($"Error at {nameof(DeleteDirectory)} with message {ex.Message}");
+            }
         }
     }
 }
