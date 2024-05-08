@@ -1,9 +1,7 @@
 ﻿using CleanObjBinFolder.Extensions;
-using CleanObjBinFolder.Models;
 using CleanObjBinFolder.Prompts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Threading.Channels;
 
 namespace CleanObjBinFolder.Services;
 
@@ -23,19 +21,25 @@ public class ApplicationService(IConfiguration configuration, ILogger<Applicatio
 
         try
         {
+            List<string> excudeFolders = new();
+
             string pathToRead = ApplicationPrompt.GetPathToRead();
 
             if (pathToRead == "-1")
-            {
                 RunErrorMessage();
-            }
 
-            List<string> excudeFolders = ApplicationPrompt.GetExcludeFolders();
+            var addingVs = ApplicationPrompt.ExcludeVsFolder();
 
-            if (excudeFolders.Count > 0 && excudeFolders[0] == "-1")
-            {
+            if (addingVs == "-1")
                 RunErrorMessage();
-            }
+
+            if (!string.IsNullOrWhiteSpace(addingVs))
+                excudeFolders.Add(addingVs);
+
+            excudeFolders.AddRange(ApplicationPrompt.GetExcludeFolders());
+
+            if (excudeFolders.Count > 0 && excudeFolders.Any(_ => _.Equals("-1")))
+                RunErrorMessage();
 
             DirectoryDeleting directoryDeleting = new DirectoryDeleting();
             directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);

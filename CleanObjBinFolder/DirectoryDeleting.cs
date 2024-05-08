@@ -1,7 +1,6 @@
 ﻿using CleanObjBinFolder.Constants;
 using CleanObjBinFolder.Extensions;
 using Serilog;
-using System.IO;
 
 namespace CleanObjBinFolder
 {
@@ -41,10 +40,8 @@ namespace CleanObjBinFolder
                     else
                         foreach (var pathParent in othersFolders)
                             FindDirectoryToDelete(pathParent, excludeFolders);
-                    }
-
-                    RecursiveDirectory(pathParent);
                 }
+            }
             catch (Exception ex)
             {
                 Log.Error($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
