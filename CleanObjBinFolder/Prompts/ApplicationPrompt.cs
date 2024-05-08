@@ -1,12 +1,7 @@
 ﻿using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CleanObjBinFolder.Prompts;
+
 public class ApplicationPrompt
 {
     public static string GetPathToRead()
@@ -43,7 +38,35 @@ public class ApplicationPrompt
             Log.Error($"Error at {nameof(GetPathToRead)} with message {ex.Message}");
             throw;
         }
+
         return pathWrong;
+    }
+
+    public static string ExcludeVsFolder()
+    {
+        string vsFolder = string.Empty;
+
+        try
+        {
+            Console.WriteLine("Do you want to exclude the '.vs' folder?. 'n' (default)");
+            string? vsExcludeAnswer = Console.ReadLine();
+            vsExcludeAnswer = vsExcludeAnswer!.ToLowerInvariant();
+
+            if (vsExcludeAnswer == "n" || string.IsNullOrWhiteSpace(vsExcludeAnswer))
+                return vsFolder;
+
+            if (vsExcludeAnswer == "y")
+                return vsFolder = ".vs";
+
+            Console.WriteLine($"Cannot select {vsExcludeAnswer} as value");
+            vsFolder = "-1";
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Error at {nameof(ExcludeVsFolder)} with message {ex.Message}");
+        }
+
+        return vsFolder;
     }
 
     public static List<string> GetExcludeFolders()
@@ -66,28 +89,32 @@ public class ApplicationPrompt
 
                 if (!excludeFolderString!.Contains(','))
                 {
-                    Console.WriteLine("Please add comma between the names");
-                    excludeFolders.Add("-1");
+                    excludeFolders.Add(excludeFolderString);
                     return excludeFolders;
                 }
 
                 string[] asArray = [.. excludeFolderString.Split(',')];
 
                 foreach (var item in asArray)
-                    item.Trim();
+                {
+                    if (!string.IsNullOrWhiteSpace(item))
+                    {
+                        item.Trim();
+                        excludeFolders.Add(item);
+                    }
+                }
 
-                return asArray.ToList();
+                return excludeFolders;
             }
 
             Console.WriteLine($"Cannot select {excludeFolderAnswer} as value");
             excludeFolders.Add("-1");
-
         }
         catch (Exception ex)
         {
             Log.Error($"Error at {nameof(GetExcludeFolders)} with message {ex.Message}");
-            throw;
         }
+
         return excludeFolders;
     }
 

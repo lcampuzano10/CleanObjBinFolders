@@ -15,13 +15,8 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
 
-		if (string.IsNullOrWhiteSpace(pathToSearch))
-			Console.WriteLine("Need to Add a Path");
-	}
-	else
-	{
-		try
-		{            
+try
+{
     Log.Information("Starting up the Service");
 
     var services = ExtensionServices.ConfigureService(Configuration);
@@ -29,12 +24,12 @@ Log.Logger = new LoggerConfiguration()
     var serviceProvider = services.BuildServiceProvider();
 
     serviceProvider.GetService<ApplicationService>()!.Run();
-        }
-		catch (Exception ex)
-		{
+}
+catch (Exception ex)
+{
     Log.Fatal(ex, "There was a problem starting the service");
     return;
-	}
+}
 finally
 {
     Log.CloseAndFlush();
