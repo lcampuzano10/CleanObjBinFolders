@@ -13,6 +13,10 @@ namespace CleanObjBinFolder
         {
             List<string> findParents = new();
 
+            string pathVsCombined = Path.Combine(parentPath, DirectoryConstants.VSFolder);
+            string pathBinCombined = Path.Combine(parentPath, DirectoryConstants.BinFolder);
+            string pathObjCombined = Path.Combine(parentPath, DirectoryConstants.ObjFolder);
+
             try
             {
                 excludeFolders.Add(DirectoryConstants.GitFolder);
@@ -21,18 +25,18 @@ namespace CleanObjBinFolder
                 {
                     if (excludeFolders.Any())
                         findParents = Directory.GetDirectories(parentPath)
-                            .Where(d => !excludeFolders.Any(d.Equals)).ToList();  // <= Will exclude the folders and show only the desire one to delete.
+                            .Where(d => !excludeFolders.Any(d.Contains)).ToList();  // <= Will exclude the folders and show only the desire one to delete.
                     else
                         findParents = Directory.GetDirectories(parentPath).ToList();    // <= Will find all and delete .vs, bin, obj
 
-                    var containsCS = findParents.Where(_ => _.Equals(DirectoryConstants.VSFolder));
+                    var containVS = findParents.Where(_ => _.Equals(pathVsCombined));
 
-                    if (containsCS.Any())
-                        PathsToDelete.Add(containsCS.First());
+                    if (containVS.Any())
+                        PathsToDelete.Add(containVS.First());
 
-                    var othersFolders = findParents.Where(_ => !_.Equals(DirectoryConstants.VSFolder));
+                    var othersFolders = findParents.Where(_ => !_.Equals(pathVsCombined));
 
-                    var containsObjBin = findParents.Where(_ => _.Equals(DirectoryConstants.BinFolder) || _.Equals(DirectoryConstants.ObjFolder));
+                    var containsObjBin = findParents.Where(_ => _.Equals(pathBinCombined) || _.Equals(pathObjCombined));
 
                     if (containsObjBin.Any())
                         foreach (var path in containsObjBin)

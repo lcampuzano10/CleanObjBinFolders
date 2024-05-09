@@ -10,15 +10,12 @@ public interface IApplicationService
     void Run();
 }
 
-public class ApplicationService(IConfiguration configuration, ILogger<ApplicationService> logger)
+public class ApplicationService(ILogger<ApplicationService> logger)
 {
-    private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     private readonly ILogger<ApplicationService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public void Run()
     {
-        //var applicationInfo = _configuration.GetSection("ApplicationInfo")!.Get<ApplicationInfo>()!;
-
         try
         {
             List<string> excudeFolders = new();
@@ -28,13 +25,13 @@ public class ApplicationService(IConfiguration configuration, ILogger<Applicatio
             if (pathToRead == "-1")
                 RunErrorMessage();
 
-            var addingVs = ApplicationPrompt.ExcludeVsFolder();
+            var excludingVS = ApplicationPrompt.ExcludeVsFolder();
 
-            if (addingVs == "-1")
+            if (excludingVS == "-1")
                 RunErrorMessage();
 
-            if (!string.IsNullOrWhiteSpace(addingVs))
-                excudeFolders.Add(addingVs);
+            if (!string.IsNullOrWhiteSpace(excludingVS))
+                excudeFolders.Add(excludingVS);
 
             excudeFolders.AddRange(ApplicationPrompt.GetExcludeFolders());
 
