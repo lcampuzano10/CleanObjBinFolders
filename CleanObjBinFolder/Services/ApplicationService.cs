@@ -39,24 +39,9 @@ public class ApplicationService(ILogger<ApplicationService> logger, DirectoryDel
             if (excudeFolders.Count > 0 && excudeFolders.Any(_ => _.Equals("-1")))
                 RunErrorMessage();
 
-            //DirectoryDeleting directoryDeleting = new DirectoryDeleting();
             _directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);
 
-            foreach (var pathToDelete in _directoryDeleting.PathsToDelete)
-            {
-                if (_directoryDeleting.DeleteDirectoryFromPath(pathToDelete))
-                {
-                    string successMessage = $"Directory {pathToDelete} has been deleted successfully";
-                    Console.WriteLine(successMessage);
-                    _logger.LogInformation(successMessage);
-                }
-                else
-                {
-                    string warningMessage = $"Directory {pathToDelete} couldn't be found and/or deleted";
-                    Console.WriteLine(warningMessage);
-                    _logger.LogWarning(warningMessage);
-                }
-            }
+            _directoryDeleting.DeleteFolders();
 
             ApplicationPrompt.DeletedFolderMessage(_directoryDeleting.PathsToDelete.Count, DirectoryExtension.FormatFileSize(_directoryDeleting.SumFileDelete));
         }
@@ -68,7 +53,7 @@ public class ApplicationService(ILogger<ApplicationService> logger, DirectoryDel
 
     private void RunErrorMessage()
     {
-        Console.WriteLine($"Running application again");
+        //Console.WriteLine($"Running application again");
         _logger.LogInformation("Running application again");
         Thread.Sleep(new TimeSpan(0, 0, 5));
         Console.Clear();

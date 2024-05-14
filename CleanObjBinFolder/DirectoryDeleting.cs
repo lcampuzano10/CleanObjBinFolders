@@ -1,20 +1,18 @@
 ﻿using CleanObjBinFolder.Constants;
 using CleanObjBinFolder.Extensions;
+using CleanObjBinFolder.Services;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using System.IO.Abstractions;
 
 namespace CleanObjBinFolder
 {
-    public class DirectoryDeleting
+    public class DirectoryDeleting(ILogger<DirectoryDeleting> logger, IFileSystem fileSystem)
     {
-        private IFileSystem _fileSystem;
+        private readonly ILogger<DirectoryDeleting> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly IFileSystem _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         public List<string> PathsToDelete { get; set; } = new();
         public long SumFileDelete = 0;
-
-        public DirectoryDeleting(IFileSystem fileSystem)
-        {
-            _fileSystem = fileSystem;
-        }
 
         public void FindDirectoryToDelete(string parentPath, List<string> excludeFolders)
         {
@@ -55,7 +53,31 @@ namespace CleanObjBinFolder
             }
             catch (Exception ex)
             {
-                Log.Error($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
+                _logger.LogError($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
+            }
+        }
+
+        public void DeleteFolders()
+        {
+            try
+            {
+                foreach (var pathToDelete in PathsToDelete)
+                {
+                    if (DeleteDirectoryFromPath(pathToDelete))
+                    {
+                        string successMessage = $"Directory {pathToDelete} has been deleted successfully";
+                        _logger.LogInformation(successMessage);
+                    }
+                    else
+                    {
+                        string warningMessage = $"Directory {pathToDelete} couldn't be found and/or deleted";
+                        _logger.LogWarning(warningMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
             }
         }
 
@@ -72,13 +94,13 @@ namespace CleanObjBinFolder
             }
             catch (Exception ex)
             {
-                Log.Error($"Error at {nameof(DeleteDirectoryFromPath)} with message {ex.Message}");
+                _logger.LogError($"Error at {nameof(DeleteDirectoryFromPath)} with message {ex.Message}");
             }
 
             return false;
         }
 
-        public static void DeleteDirectory(string path)
+        public void DeleteDirectory(string path)
         {
             try
             {
@@ -93,7 +115,7 @@ namespace CleanObjBinFolder
             }
             catch (Exception ex)
             {
-                Log.Error($"Error at {nameof(DeleteDirectory)} with message {ex.Message}");
+                _logger.LogError($"Error at {nameof(DeleteDirectory)} with message {ex.Message}");
             }
         }
     }
