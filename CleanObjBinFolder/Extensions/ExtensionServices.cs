@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using System.IO.Abstractions;
 
 namespace CleanObjBinFolder.Extensions;
 
@@ -37,6 +38,8 @@ public static class ExtensionServices
         services.AddSingleton(configuration); 
         services.AddOptions();
         services.AddTransient<ApplicationService>();
+        services.AddScoped<DirectoryDeleting>();
+        services.AddScoped<IFileSystem, FileSystem>();
 
         return services;
     }

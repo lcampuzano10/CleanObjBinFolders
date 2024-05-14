@@ -1,13 +1,20 @@
 ﻿using CleanObjBinFolder.Constants;
 using CleanObjBinFolder.Extensions;
 using Serilog;
+using System.IO.Abstractions;
 
 namespace CleanObjBinFolder
 {
     public class DirectoryDeleting
     {
+        private IFileSystem _fileSystem;
         public List<string> PathsToDelete { get; set; } = new();
         public long SumFileDelete = 0;
+
+        public DirectoryDeleting(IFileSystem fileSystem)
+        {
+            _fileSystem = fileSystem;
+        }
 
         public void FindDirectoryToDelete(string parentPath, List<string> excludeFolders)
         {
@@ -21,13 +28,13 @@ namespace CleanObjBinFolder
             {
                 excludeFolders.Add(DirectoryConstants.GitFolder);
 
-                if (Directory.Exists(parentPath))
+                if (_fileSystem.Directory.Exists(parentPath))
                 {
                     if (excludeFolders.Any())
-                        findParents = Directory.GetDirectories(parentPath)
+                        findParents = _fileSystem.Directory.GetDirectories(parentPath)
                             .Where(d => !excludeFolders.Any(d.Contains)).ToList();  // <= Will exclude the folders and show only the desire one to delete.
                     else
-                        findParents = Directory.GetDirectories(parentPath).ToList();    // <= Will find all and delete .vs, bin, obj
+                        findParents = _fileSystem.Directory.GetDirectories(parentPath).ToList();    // <= Will find all and delete .vs, bin, obj
 
                     var containVS = findParents.Where(_ => _.Equals(pathVsCombined));
 
@@ -56,10 +63,10 @@ namespace CleanObjBinFolder
         {
             try
             {
-                if (Directory.Exists(path))
+                if (_fileSystem.Directory.Exists(path))
                 {
                     SumFileDelete += DirectoryExtension.GetFolderSizeNoExtension(path, true);
-                    Directory.Delete(path, true);
+                    _fileSystem.Directory.Delete(path, true);
                     return true;
                 }
             }

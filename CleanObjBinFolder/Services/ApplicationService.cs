@@ -10,9 +10,10 @@ public interface IApplicationService
     void Run();
 }
 
-public class ApplicationService(ILogger<ApplicationService> logger)
+public class ApplicationService(ILogger<ApplicationService> logger, DirectoryDeleting directoryDeleting)
 {
     private readonly ILogger<ApplicationService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly DirectoryDeleting _directoryDeleting = directoryDeleting ?? throw new ArgumentNullException(nameof(directoryDeleting));
 
     public void Run()
     {
@@ -38,12 +39,12 @@ public class ApplicationService(ILogger<ApplicationService> logger)
             if (excudeFolders.Count > 0 && excudeFolders.Any(_ => _.Equals("-1")))
                 RunErrorMessage();
 
-            DirectoryDeleting directoryDeleting = new DirectoryDeleting();
-            directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);
+            //DirectoryDeleting directoryDeleting = new DirectoryDeleting();
+            _directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);
 
-            foreach (var pathToDelete in directoryDeleting.PathsToDelete)
+            foreach (var pathToDelete in _directoryDeleting.PathsToDelete)
             {
-                if (directoryDeleting.DeleteDirectoryFromPath(pathToDelete))
+                if (_directoryDeleting.DeleteDirectoryFromPath(pathToDelete))
                 {
                     string successMessage = $"Directory {pathToDelete} has been deleted successfully";
                     Console.WriteLine(successMessage);
@@ -57,7 +58,7 @@ public class ApplicationService(ILogger<ApplicationService> logger)
                 }
             }
 
-            ApplicationPrompt.DeletedFolderMessage(directoryDeleting.PathsToDelete.Count, DirectoryExtension.FormatFileSize(directoryDeleting.SumFileDelete));
+            ApplicationPrompt.DeletedFolderMessage(_directoryDeleting.PathsToDelete.Count, DirectoryExtension.FormatFileSize(_directoryDeleting.SumFileDelete));
         }
         catch (Exception ex)
         {
