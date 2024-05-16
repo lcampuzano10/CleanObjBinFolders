@@ -1,4 +1,5 @@
-﻿using CleanObjBinFolder.Extensions;
+﻿using CleanObjBinFolder.Constants;
+using CleanObjBinFolder.Extensions;
 using CleanObjBinFolder.Prompts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -38,6 +39,8 @@ public class ApplicationService(ILogger<ApplicationService> logger, DirectoryDel
 
             if (excudeFolders.Count > 0 && excudeFolders.Any(_ => _.Equals("-1")))
                 RunErrorMessage();
+
+            excudeFolders.Add(DirectoryConstants.GitFolder);
 
             _directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);
 

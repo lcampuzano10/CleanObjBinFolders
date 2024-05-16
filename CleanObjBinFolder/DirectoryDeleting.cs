@@ -24,8 +24,6 @@ namespace CleanObjBinFolder
 
             try
             {
-                excludeFolders.Add(DirectoryConstants.GitFolder);
-
                 if (_fileSystem.Directory.Exists(parentPath))
                 {
                     if (excludeFolders.Any())

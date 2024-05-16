@@ -24,14 +24,6 @@ public static class ExtensionServices
         IServiceCollection services = new ServiceCollection();
         services.AddLogging(builder =>
         {
-            //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!.Equals("Development"))
-            //{
-            //    builder.SetMinimumLevel(LogLevel.Debug);
-            //}
-            //else
-            //{
-            //    builder.SetMinimumLevel(LogLevel.Warning);
-            //}
             builder.SetMinimumLevel(LogLevel.Information);
             builder.AddSerilog(Log.Logger, true);
         });
