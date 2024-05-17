@@ -79,13 +79,13 @@ namespace CleanObjBinFolder
             }
         }
 
-        public bool DeleteDirectoryFromPath(string path)
+        private bool DeleteDirectoryFromPath(string path)
         {
             try
             {
                 if (_fileSystem.Directory.Exists(path))
                 {
-                    SumFileDelete += DirectoryExtension.GetFolderSizeNoExtension(path, true);
+                    SumFileDelete += GetFolderSizeNoExtension(path, true);
                     _fileSystem.Directory.Delete(path, true);
                     return true;
                 }
@@ -98,7 +98,7 @@ namespace CleanObjBinFolder
             return false;
         }
 
-        public void DeleteDirectory(string path)
+        private void DeleteDirectory(string path)
         {
             try
             {
@@ -115,6 +115,12 @@ namespace CleanObjBinFolder
             {
                 _logger.LogError($"Error at {nameof(DeleteDirectory)} with message {ex.Message}");
             }
+        }
+
+        private long GetFolderSizeNoExtension(string path, bool allDirectories)
+        {
+            var option = allDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            return _fileSystem.DirectoryInfo.New(path).EnumerateFiles("*", option).Sum(file => file.Length);
         }
     }
 }
