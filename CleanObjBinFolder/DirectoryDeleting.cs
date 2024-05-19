@@ -1,11 +1,16 @@
 ﻿using CleanObjBinFolder.Constants;
 using CleanObjBinFolder.Extensions;
+using CleanObjBinFolder.Services;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using System.IO.Abstractions;
 
 namespace CleanObjBinFolder
 {
-    public class DirectoryDeleting
+    public class DirectoryDeleting(ILogger<DirectoryDeleting> logger, IFileSystem fileSystem)
     {
+        private readonly ILogger<DirectoryDeleting> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly IFileSystem _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         public List<string> PathsToDelete { get; set; } = new();
         public long SumFileDelete = 0;
 
@@ -19,15 +24,13 @@ namespace CleanObjBinFolder
 
             try
             {
-                excludeFolders.Add(DirectoryConstants.GitFolder);
-
-                if (Directory.Exists(parentPath))
+                if (_fileSystem.Directory.Exists(parentPath))
                 {
                     if (excludeFolders.Any())
-                        findParents = Directory.GetDirectories(parentPath)
+                        findParents = _fileSystem.Directory.GetDirectories(parentPath)
                             .Where(d => !excludeFolders.Any(d.Contains)).ToList();  // <= Will exclude the folders and show only the desire one to delete.
                     else
-                        findParents = Directory.GetDirectories(parentPath).ToList();    // <= Will find all and delete .vs, bin, obj
+                        findParents = _fileSystem.Directory.GetDirectories(parentPath).ToList();    // <= Will find all and delete .vs, bin, obj
 
                     var containVS = findParents.Where(_ => _.Equals(pathVsCombined));
 
@@ -48,7 +51,31 @@ namespace CleanObjBinFolder
             }
             catch (Exception ex)
             {
-                Log.Error($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
+                _logger.LogError($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
+            }
+        }
+
+        public void DeleteFolders()
+        {
+            try
+            {
+                foreach (var pathToDelete in PathsToDelete)
+                {
+                    if (DeleteDirectoryFromPath(pathToDelete))
+                    {
+                        string successMessage = $"Directory {pathToDelete} has been deleted successfully";
+                        _logger.LogInformation(successMessage);
+                    }
+                    else
+                    {
+                        string warningMessage = $"Directory {pathToDelete} couldn't be found and/or deleted";
+                        _logger.LogWarning(warningMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error at {nameof(FindDirectoryToDelete)} with message {ex.Message}");
             }
         }
 
@@ -56,22 +83,22 @@ namespace CleanObjBinFolder
         {
             try
             {
-                if (Directory.Exists(path))
+                if (_fileSystem.Directory.Exists(path))
                 {
                     SumFileDelete += DirectoryExtension.GetFolderSizeNoExtension(path, true);
-                    Directory.Delete(path, true);
+                    _fileSystem.Directory.Delete(path, true);
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"Error at {nameof(DeleteDirectoryFromPath)} with message {ex.Message}");
+                _logger.LogError($"Error at {nameof(DeleteDirectoryFromPath)} with message {ex.Message}");
             }
 
             return false;
         }
 
-        public static void DeleteDirectory(string path)
+        public void DeleteDirectory(string path)
         {
             try
             {
@@ -86,7 +113,7 @@ namespace CleanObjBinFolder
             }
             catch (Exception ex)
             {
-                Log.Error($"Error at {nameof(DeleteDirectory)} with message {ex.Message}");
+                _logger.LogError($"Error at {nameof(DeleteDirectory)} with message {ex.Message}");
             }
         }
     }

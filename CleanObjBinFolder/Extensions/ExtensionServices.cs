@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using System.IO.Abstractions;
 
 namespace CleanObjBinFolder.Extensions;
 
@@ -23,20 +24,14 @@ public static class ExtensionServices
         IServiceCollection services = new ServiceCollection();
         services.AddLogging(builder =>
         {
-            //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!.Equals("Development"))
-            //{
-            //    builder.SetMinimumLevel(LogLevel.Debug);
-            //}
-            //else
-            //{
-            //    builder.SetMinimumLevel(LogLevel.Warning);
-            //}
             builder.SetMinimumLevel(LogLevel.Information);
             builder.AddSerilog(Log.Logger, true);
         });
         services.AddSingleton(configuration); 
         services.AddOptions();
         services.AddTransient<ApplicationService>();
+        services.AddScoped<DirectoryDeleting>();
+        services.AddScoped<IFileSystem, FileSystem>();
 
         return services;
     }

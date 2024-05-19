@@ -1,4 +1,5 @@
-﻿using CleanObjBinFolder.Extensions;
+﻿using CleanObjBinFolder.Constants;
+using CleanObjBinFolder.Extensions;
 using CleanObjBinFolder.Prompts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -10,9 +11,10 @@ public interface IApplicationService
     void Run();
 }
 
-public class ApplicationService(ILogger<ApplicationService> logger)
+public class ApplicationService(ILogger<ApplicationService> logger, DirectoryDeleting directoryDeleting)
 {
     private readonly ILogger<ApplicationService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly DirectoryDeleting _directoryDeleting = directoryDeleting ?? throw new ArgumentNullException(nameof(directoryDeleting));
 
     public void Run()
     {
@@ -38,26 +40,13 @@ public class ApplicationService(ILogger<ApplicationService> logger)
             if (excudeFolders.Count > 0 && excudeFolders.Any(_ => _.Equals("-1")))
                 RunErrorMessage();
 
-            DirectoryDeleting directoryDeleting = new DirectoryDeleting();
-            directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);
+            excudeFolders.Add(DirectoryConstants.GitFolder);
 
-            foreach (var pathToDelete in directoryDeleting.PathsToDelete)
-            {
-                if (directoryDeleting.DeleteDirectoryFromPath(pathToDelete))
-                {
-                    string successMessage = $"Directory {pathToDelete} has been deleted successfully";
-                    Console.WriteLine(successMessage);
-                    _logger.LogInformation(successMessage);
-                }
-                else
-                {
-                    string warningMessage = $"Directory {pathToDelete} couldn't be found and/or deleted";
-                    Console.WriteLine(warningMessage);
-                    _logger.LogWarning(warningMessage);
-                }
-            }
+            _directoryDeleting.FindDirectoryToDelete(pathToRead, excudeFolders);
 
-            ApplicationPrompt.DeletedFolderMessage(directoryDeleting.PathsToDelete.Count, DirectoryExtension.FormatFileSize(directoryDeleting.SumFileDelete));
+            _directoryDeleting.DeleteFolders();
+
+            ApplicationPrompt.DeletedFolderMessage(_directoryDeleting.PathsToDelete.Count, DirectoryExtension.FormatFileSize(_directoryDeleting.SumFileDelete));
         }
         catch (Exception ex)
         {
@@ -67,7 +56,7 @@ public class ApplicationService(ILogger<ApplicationService> logger)
 
     private void RunErrorMessage()
     {
-        Console.WriteLine($"Running application again");
+        //Console.WriteLine($"Running application again");
         _logger.LogInformation("Running application again");
         Thread.Sleep(new TimeSpan(0, 0, 5));
         Console.Clear();
